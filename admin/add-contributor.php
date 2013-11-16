@@ -1,28 +1,18 @@
 <?php include "../header.php"; ?>
 <?php processNewContributor(); ?>
-<form method="POST" enctype="multipart/form-data" id="submit-form" onsubmit="return checkNewContributorForm();">
-	<label for="first-name">First Name<span class="required">*</span></label><br />
-	<input type="text" name="first-name" id="first-name" value="<?php echo $_POST['first-name']; ?>" />
-	<span class="error" id="first-err"></span>
+<form method="POST" id="submit-form" onsubmit="return checkNewContributorForm();">
+<?php printPermissions(); 
+$labels = array("First Name", "Last Name", "Email", "Password", "Confirm Password");
+$fields = array("first", "last", "email", "password", "password-confirm");
+$types = array("text","text","text","password","password");
+$persists = array(TRUE, TRUE, TRUE, FALSE, FALSE);
+for ($i = 0; $i < count($fields); $i++): 
+	$field = $fields[$i]; ?>
+	<label for="<?php echo $field;?>"><?php echo $labels[$i];?><span class="required">*</span></label><br />
+	<input type="<?php echo $types[$i];?>" name="<?php echo $field;?>" id="<?php echo $field;?>" value="<?php if($persists[$i])echo $_POST[$field]; ?>" />
+	<span class="error" id="<?php echo $field;?>-err"></span>
 	<br /><br />
-	<label for="last-name">Last Name<span class="required">*</span></label><br />
-	<input type="text" name="last-name" id="last-name" value="<?php echo $_POST['last-name']; ?>" />
-	<span class="error" id="last-err"></span>
-	<br /><br />
-	<label for="email">Email<span class="required">*</span></label><br />
-	<input type="text" name="email" id="email" value="<?php echo $_POST['email']; ?>" />
-	<span class="error" id="email-err"></span>
-	<br /><br />
-	<?php printPermissions(); ?>
-	<br />
-	<label for="password">Password<span class="required">*</span></label><br />
-	<input type="password" name="password" id="password" value="" />
-	<span class="error" id="password-err"></span>
-	<br /><br />
-	<label for="password-confirm">Confirm Password<span class="required">*</span></label><br />
-	<input type="password" name="password-confirm" id="password-confirm" value="" />
-	<span class="error" id="password-confirm-err"></span>
-	<br /><br />
+<?php endfor; ?>
 	<input type="submit" name="submit" value="Submit" />
 </form>
 <?php include "../footer.php"; ?>

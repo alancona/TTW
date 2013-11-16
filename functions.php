@@ -3,62 +3,79 @@ function printPermissions() {
 	if (!isset($connection)) {
 		include "dbconnection.php";
 	}
-	$stmt = $connection->prepare('SELECT Name FROM Permissions');
+	$stmt = $connection->prepare('SELECT Name, ID FROM Permissions');
 	$stmt->execute();
-	$stmt->bind_result($name);
+	$stmt->bind_result($name, $id);
+
 	$first = true;
 	$radioSet = isset($_POST["permission"]);
+	echo "\t<label for='permission'>Permissions<span class='required'>*</span></label><br />";
 	while ($stmt->fetch()) {
-		echo "<input type='radio' name='permission' value='{$name}'";
+		echo "\r\n\t<input type='radio' name='permission' value='{$id}'";
 		if(!$radioSet && $first || $_POST["permission"] == $name) {
 			echo "checked";
 		}
 		echo "/> " . ucwords($name) . "<br />";
 		$first = false; 
 	}
+	echo "<br />\r\n";
 	$stmt->close();
 }
 function processNewContributor() {
-	/*
-	$first_name = isset($_POST["first-name"]) ? trim($_POST["first-name"]) : "";
-	$last_name = isset($_POST["last-name"]) ? trim($_POST["last-name"]) : "";
-	$email = isset($_POST["email"]) ? trim($_POST["email"]) : "";
-	$password = isset($_POST["password"]) ? $_POST["password"] : "";
-	$password_confirm = isset($_POST["password-confirm"]) ? $_POST["password-confirm"] : "";
-	$error = false;
-	if ($.trim($("#first-name").val()).length == 0) {
-		$("#first-err").html("First name cannot be blank.");
-		error = true;
-	} else {
-		$("#first-err").empty();
+	if (!isset($_POST['first'])) {
+		return;
 	}
-	if ($.trim($("#last-name").val()).length == 0) {
-		$("#last-err").html("Last name cannot be blank.");
-		error = true;
-	} else {
-		$("#last-err").empty();
+	$first_name = trim($_POST["first"]);
+	$last_name = trim($_POST["last"]);
+	$email = trim($_POST["email"]);
+	$password = $_POST["password"];
+	$password_confirm = $_POST["password-confirm"];
+
+	if (!isset($connection)) {
+		include "dbconnection.php";
+	} 
+
+	$errors = array();
+	if (strlen($first_name) == 0) {
+		$errors[] = "First name cannot be blank.";
 	}
-	$emailRegex = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i;
-	if (!emailRegex.test($("#password").val())) {
-		$("#email-err").html("Not a valid email address.");
-		error = true;
-	} else {
-		$("#email-err").empty();
+	if (strlen($last_name) == 0) {
+		$errors[] = "Last name cannot be blank.";
 	}
-	if ($("#password").val().length < 5) {
-		$("#password-err").html("Password must be at least 5 characters long.");
-		error = true;
+	if (!preg_match("/\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i", $email)) {
+		$errors[] = "Not a valid email address.";
 	} else {
-		$("#password-err").empty();
+		$stmt = $connection->prepare('SELECT Email FROM Contributors');
+		$stmt->execute();
+		$stmt->bind_result($existing_email);
+		while ($stmt->fetch()) {
+			if ($email == $existing_email) {
+				$errors[] = "Email address already exists in database.";
+				break;
+			}
+		}
+		$stmt->close();
 	}
-	if ($("#password-confirm").val() != $("#password").val()) {
-		$("#password-confirm-err").html("Passwords must match.");
-		error = true;
+	if (strlen($password) < 5) {
+		$errors[] = "Password must be at least 5 characters long.";
+	}
+	if ($password !== $password_confirm) {
+		$errors[] = "Passwords must match.";
+	}
+	if (count($errors) == 0) {
+		$stmt = $connection->prepare('INSERT INTO Contributors (FirstName, LastName, Email, Password_Digest, Permission) VALUES
+	(?, ?, ?, ?, ?)');
+		$stmt->bind_param('ssssd', $first_name, $last_name, $email, $password, $_POST['permission']);
+		$stmt->execute();
+		$stmt->close();
+		echo "<h3 style='color:green'>{$first_name} {$last_name} added to Contributors.</h3>\r\n";
 	} else {
-		$("#password-confirm-err").empty();
+		echo "<h3 class='error'>The following errors occured:</h3>\r\n";
+		echo "<ul>\r\n";
+		foreach ($errors as $error) {
+			echo "\t<li class='error'>{$error}</li>\r\n";
+		}
+		echo "</ul>\r\n";
 	}
-	if (!error) {
-		$("#submit-form").submit();
-	}*/
 }
 ?>
